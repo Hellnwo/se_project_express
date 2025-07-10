@@ -24,17 +24,19 @@ const clothingItemSchema = new mongoose.Schema({
 }
   },
 owner: {
-    type: String,
+    type: Array,
+    ref: 'user',
     required: true,
   },
   likes: {
     type: Array,
-    required: true,
+    ref: 'user',
+    default: []
   },
   createdAt: {
     type: Date,
-    required: true,
-  }
+    default: Date.now,
+  },
 });
 
 module.exports = mongoose.model('clothingItem', clothingItemSchema);
