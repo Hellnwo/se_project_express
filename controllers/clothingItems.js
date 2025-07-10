@@ -1,5 +1,5 @@
 const ClothingItem = require('../models/clothingItem');
-const { BAD_REQUEST, NOT_FOUND, UNAUTHORIZED, FORBIDDEN, CONFLICT, INTERNAL_SERVER_ERROR, OK, CREATED, NO_CONTENT } = require('../utils/errors');
+const { BAD_REQUEST, NOT_FOUND, INTERNAL_SERVER_ERROR, OK, NO_CONTENT } = require('../utils/errors');
 
 const getItems = (req, res) => {
   ClothingItem.find({})
@@ -44,7 +44,7 @@ const {itemId} = req.params;
   ClothingItem.findByIdAndDelete(itemId)
   .orFail()
   .then((item) => {
-    if (item.owner.toString() !== req.user._id) { return res.status(NO_CONTENT).send({message: err.message});
+    if (item.owner.toString() !== req.user._id) { return res.status(NO_CONTENT).send({message: "You don't have permission to delete this item"});
 }
 return item.deleteOne().then(() => {
   res.status(OK).send({message: 'Item successfully deleted', data: item,});
@@ -61,7 +61,6 @@ return item.deleteOne().then(() => {
 };
 
 const likeItem = (req, res) => {
-  const owner = req.user._id;
   const { itemId } = req.params;
 
   ClothingItem.findByIdAndUpdate(
@@ -84,7 +83,6 @@ const likeItem = (req, res) => {
 };
 
 const dislikeItem = (req, res) => {
-  const owner = req.user._id;
   const { itemId } = req.params;
 
   ClothingItem.findByIdAndUpdate(

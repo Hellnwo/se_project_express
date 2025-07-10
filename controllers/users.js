@@ -1,5 +1,5 @@
 const User = require('../models/user');
-const { BAD_REQUEST, NOT_FOUND, UNAUTHORIZED, FORBIDDEN, CONFLICT, INTERNAL_SERVER_ERROR, OK, CREATED, NO_CONTENT } = require('../utils/errors');
+const { BAD_REQUEST, NOT_FOUND, INTERNAL_SERVER_ERROR, OK, CREATED } = require('../utils/errors');
 
 const getUsers = (req, res) => {
   User.find({})
