@@ -53,10 +53,10 @@ return item.deleteOne().then(() => {
   .catch((err) => {
       console.error(err);
       if (err.name === 'CastError' || err.name === 'ValidationError') {
-    res.status(BAD_REQUEST).send({ message: err.message});
+    return res.status(BAD_REQUEST).send({ message: err.message});
   } else if (err.name === 'DocumentNotFoundError') {
-    res.status(NOT_FOUND).send({ message: err.message });
-  } else res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
+    return res.status(NOT_FOUND).send({ message: err.message });
+  } else return res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
 });
 };
 
@@ -75,10 +75,10 @@ const likeItem = (req, res) => {
 .catch((err) => {
   console.error(err);
   if (err.name === 'CastError' || err.name === 'ValidationError') {
-    res.status(BAD_REQUEST).send({ message: err.message});
+    return res.status(BAD_REQUEST).send({ message: err.message});
   } else if (err.name === 'DocumentNotFoundError') {
-    res.status(NOT_FOUND).send({ message: err.message });
-  } else res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
+    return res.status(NOT_FOUND).send({ message: err.message });
+  } else return res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
 });
 };
 
@@ -97,10 +97,10 @@ const dislikeItem = (req, res) => {
 .catch((err) => {
   console.error(err);
   if (err.name === 'CastError' || err.name === 'ValidationError') {
-    res.status(BAD_REQUEST).send({ message: err.message});
+    return res.status(BAD_REQUEST).send({ message: err.message});
   } else if (err.name === 'DocumentNotFoundError') {
-    res.status(NOT_FOUND).send({ message: err.message });
-  } else res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
+    return res.status(NOT_FOUND).send({ message: err.message });
+  } else return res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
 });
 };
 
