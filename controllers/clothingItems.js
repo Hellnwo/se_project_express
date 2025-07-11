@@ -3,10 +3,10 @@ const { BAD_REQUEST, NOT_FOUND, INTERNAL_SERVER_ERROR, OK, NO_CONTENT } = requir
 
 const getItems = (req, res) => {
   ClothingItem.find({})
-    .then(items => res.status(OK).send(items))
+    .then(items => res.send(items))
     .catch((err) => {
       console.error(err);
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: 'An error has occurred on the server' });
     });
 };
 
@@ -19,22 +19,9 @@ const createItems = (req, res) => {
     .catch((err) => {
       console.error(err);
       if(err.name === 'ValidationError'){
-        return res.status(BAD_REQUEST).send({ message: err.message});
+        return res.status(BAD_REQUEST).send({ message: 'Invalid data'});
       }
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
-    });
-};
-
-const updateItems = (req, res) => {
-  const {itemId} = req.params;
-  const {imageUrl} = req.body;
-
-  ClothingItem.findByIdAndUpdate(itemId, {$set: {imageUrl}})
-  .orFail()
-  .then(item => res.status(OK).send({data: item}))
-  .catch((err) => {
-      console.error(err);
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: 'An error has occurred on the server' });
     });
 };
 
@@ -53,10 +40,10 @@ return item.deleteOne().then(() => {
   .catch((err) => {
       console.error(err);
       if (err.name === 'CastError' || err.name === 'ValidationError') {
-    return res.status(BAD_REQUEST).send({ message: err.message});
+    return res.status(BAD_REQUEST).send({ message: 'Invalid data'});
   } if (err.name === 'DocumentNotFoundError') {
-    return res.status(NOT_FOUND).send({ message: err.message });
-  } return res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
+    return res.status(NOT_FOUND).send({ message: 'Item cannot be found' });
+  } return res.status(INTERNAL_SERVER_ERROR).send({ message: 'An error has occurred on the server' });
 });
 };
 
@@ -75,10 +62,10 @@ const likeItem = (req, res) => {
 .catch((err) => {
   console.error(err);
   if (err.name === 'CastError' || err.name === 'ValidationError') {
-    return res.status(BAD_REQUEST).send({ message: err.message});
+    return res.status(BAD_REQUEST).send({ message: 'Invalid data'});
   } if (err.name === 'DocumentNotFoundError') {
-    return res.status(NOT_FOUND).send({ message: err.message });
-  } return res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
+    return res.status(NOT_FOUND).send({ message: 'Item cannot be found' });
+  } return res.status(INTERNAL_SERVER_ERROR).send({ message: 'An error has occurred on the server' });
 });
 };
 
@@ -97,11 +84,11 @@ const dislikeItem = (req, res) => {
 .catch((err) => {
   console.error(err);
   if (err.name === 'CastError' || err.name === 'ValidationError') {
-    return res.status(BAD_REQUEST).send({ message: err.message});
+    return res.status(BAD_REQUEST).send({ message: 'Invalid data'});
   } if (err.name === 'DocumentNotFoundError') {
-    return res.status(NOT_FOUND).send({ message: err.message });
-  } return res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
+    return res.status(NOT_FOUND).send({ message: 'Item cannot be found' });
+  } return res.status(INTERNAL_SERVER_ERROR).send({ message: 'An error has occurred on the server' });
 });
 };
 
-module.exports = { getItems, createItems, updateItems, deleteItems, likeItem, dislikeItem};
+module.exports = { getItems, createItems, deleteItems, likeItem, dislikeItem};

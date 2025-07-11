@@ -7,8 +7,6 @@ router.post('/', createItems);
 
 router.delete('/:itemId', deleteItems);
 
-router.put('/:itemId', updateItems);
-
 router.put('/:itemId/likes', likeItem);
 
 router.delete('/:itemId/likes', dislikeItem);
