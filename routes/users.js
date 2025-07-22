@@ -1,10 +1,22 @@
 const router = require('express').Router();
-const { getUsers, getUser, createUser } = require('../controllers/users');
+const { celebrat, Joi } = require("celebrate");
+const { getCurrentUser, updateProfile } = require('../controllers/users');
+const auth = require("../middlewares/auth")
 
-router.get('/', getUsers);
+const validateUpdateUser = celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().min(2).max(30).optional,
+    avatar: Joi.string().required().custom((value, helpers) => {
+      if (validator.isURL(value)) {
+        return value;
+      }
+      return helpers.error('string.uri', { value });
+    }),
+  }),
+});
 
-router.get('/:userId', getUser);
+router.get("/me", auth, getCurrentUser);
 
-router.post('/', createUser);
+router.patch("/me", auth, validateUpdateUser, updateProfile);
 
 module.exports = router;

@@ -1,9 +1,15 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const cors = require("cors");
+require("dotenv").config();
+
+const { errors } = require("celebrate");
 const mainRouter = require('./routes/index');
 
 const { PORT = 3001 } = process.env;
 const app = express();
+const errorHandler = require("./middlewares/errorHandler");
+const { requestLogger, errorLogger } = require("./middlewares/loggers");
 
 mongoose
 .connect('mongodb://127.0.0.1:27017/wtwr_db')
@@ -12,16 +18,18 @@ mongoose
 })
 .catch(console.error);
 
+app.use(cors());
 app.use(express.json());
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '686de36e734d327abefc0d09'// paste the _id of the test user created in the previous step
-  };
-  next();
-});
+app.use(requestLogger);
 
 app.use('/', mainRouter);
+
+app.use(errorLogger);
+
+app.use(errors());
+
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`App listening at port ${PORT}`);
