@@ -13,7 +13,7 @@ const getCurrentUser = (req, res, next) => {
       if (!user) {
         return next(new UNAUTHORIZED("User not found"));
       }
-      res.status(200).json({
+      return res.status(200).json({
         id: user.id,
         name: user.name,
         avatar: user.avatar,
@@ -22,12 +22,10 @@ const getCurrentUser = (req, res, next) => {
     })
     .catch((err) => {
       console.error(err);
-      if (err.name === 'DocumentNotFoundError') {
-    return res.status(NOT_FOUND).send({ message: 'User cannot be found' });
-      } if (err.name === 'CastError' || err.name === 'ValidationError'){
-        return res.status(BAD_REQUEST).send({ message: 'Invalid data'});
+      if (err.name === 'CastError') {
+        return next(new BAD_REQUEST("Invalid Data"));
       }
-      return next(err)
+      return next(err);
     });
 };
 
@@ -54,7 +52,7 @@ const createUser = (req, res, next) => {
     .catch((err) => {
       console.error(err);
       if(err.name === 'ValidationError'){
-        return res.status(BAD_REQUEST).send({ message: 'Invalid data'});
+        return next(new BAD_REQUEST("Invalid Data"));
       }
       return next(err);
     });
@@ -107,7 +105,7 @@ const updateProfile = (req, res, next) => {
  })
  .catch((err) => {
   if (err.name === 'CastError' || err.name === 'ValidationError'){
-        return res.status(BAD_REQUEST).send({ message: 'Invalid data'});
+        return next(new BAD_REQUEST("Invalide Data"));
       }
       return next(err)
  });
