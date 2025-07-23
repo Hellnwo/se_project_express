@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const { celebrate, Joi } = require("celebrate");
+const validator = require('validator');
 const { getCurrentUser, updateProfile } = require('../controllers/users');
 const auth = require("../middlewares/auth")
 
