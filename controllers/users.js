@@ -2,18 +2,22 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require('../models/user');
 const { JWT_SECRET } = require("../utils/config");
-const { BAD_REQUEST, NOT_FOUND, OK, CONFLICT, UNAUTHORIZED } = require('../utils/errors');
+const { OK } = require('../utils/errors');
+const BadRequestError = require('../utils/error/BadRequestError');
+const UnauthorizedError = require('../utils/error/UnauthorizedError');
+const ConflictError = require('../utils/error/ConflictError');
+const NotFoundError = require('../utils/error/NotFoundError');
 
 const getCurrentUser = (req, res, next) => {
  if (!req.user || !req.user.id) {
-  return next(new UNAUTHORIZED("Authorization required"));
+  return next(new UnauthorizedError("Authorization required"));
  }
   return User.findById(req.user.id)
     .then((user) => {
       if (!user) {
-        return next(new UNAUTHORIZED("User not found"));
+        return next(new UnauthorizedError("User not found"));
       }
-      return res.status(200).json({
+      return res.status(OK).json({
         id: user.id,
         name: user.name,
         avatar: user.avatar,
@@ -23,7 +27,7 @@ const getCurrentUser = (req, res, next) => {
     .catch((err) => {
       console.error(err);
       if (err.name === 'CastError') {
-        return next(new BAD_REQUEST("Invalid Data"));
+        return next(new BadRequestError("Invalid Data"));
       }
       return next(err);
     });
@@ -32,10 +36,11 @@ const getCurrentUser = (req, res, next) => {
 const createUser = (req, res, next) => {
   const { name, avatar, password, email } = req.body;
 
+
   return User.findOne({ email })
   .then((existingUser) => {
     if (existingUser) {
-      return next(new CONFLICT("Email already exists"));
+      return next(new ConflictError("Email already exists"));
     }
     return bcrypt.hash(password, 10).then((hash) =>
     User.create({ name, avatar, email, password: hash })
@@ -50,9 +55,8 @@ const createUser = (req, res, next) => {
     );
   })
     .catch((err) => {
-      console.error(err);
       if(err.name === 'ValidationError'){
-        return next(new BAD_REQUEST("Invalid Data"));
+        return next(new BadRequestError("Invalid Data"));
       }
       return next(err);
     });
@@ -70,7 +74,7 @@ const login = (req, res, next) => {
   })
   .catch((err) => {
     if (err.message === "Incorrect email or password") {
-      return next(new UNAUTHORIZED("Invalid email or password"));
+      return next(new UnauthorizedError("Invalid email or password"));
     }
     return next(err);
   });
@@ -78,7 +82,7 @@ const login = (req, res, next) => {
 
 const updateProfile = (req, res, next) => {
   if (!req.user || !req.user.id) {
-  return next(new UNAUTHORIZED("Authorization required"));
+  return next(new UnauthorizedError("Authorization required"));
  }
 
  console.log("Request body:", req.body);
@@ -92,7 +96,7 @@ const updateProfile = (req, res, next) => {
  )
  .then((user) => {
   if (!user) {
-    return next(new NOT_FOUND("User not found"));
+    return next(new NotFoundError("User not found"));
   }
   const updatedUser = {
     id: user.id,
@@ -105,7 +109,7 @@ const updateProfile = (req, res, next) => {
  })
  .catch((err) => {
   if (err.name === 'CastError' || err.name === 'ValidationError'){
-        return next(new BAD_REQUEST("Invalide Data"));
+        return next(new BadRequestError("Invalide Data"));
       }
       return next(err)
  });
