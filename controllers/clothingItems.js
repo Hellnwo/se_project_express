@@ -1,94 +1,117 @@
+const mongoose = require("mongoose");
 const BadRequestError = require('../utils/error/BadRequestError');
 const ForbiddenError = require('../utils/error/ForbiddenError');
 const NotFoundError = require('../utils/error/NotFoundError');
+const UnauthorizedError = require('../utils/error/UnauthorizedError');
 
 const ClothingItem = require('../models/clothingItem');
-const { OK, CREATED } = require('../utils/errors');
 
-const getItems = async (req, res, next) => {
-  try {
-  const items = await ClothingItem.find().sort({ createdAt: -1});
-    return res.status(OK).send(items);
-  } catch(err) {
-      console.error(err);
-      return next(err);
-    }
+const getItems = (req, res, next) => {
+  ClothingItem.find({})
+    .then((items) => res.status(200).send(items))
+    .catch(next);
 };
 
-const createItems = async (req, res, next) => {
-  try {
+
+const createItems = (req, res, next) => {
+  if (!req.user || !req.user.id) {
+    return next(new UnauthorizedError("Authorization required"));
+  }
   const { name, weather, imageUrl } = req.body;
-  const owner = req.user._id;
+  const owner = req.user.id;
 
-  const newItem = await ClothingItem.create({ name, weather, imageUrl, owner, createdAt: Date.now() });
-    return res.status(CREATED).send(newItem);
-  } catch(err) {
-    if(err.name === 'ValidationError'){
-        return next(new BadRequestError(err.message));
+  return ClothingItem.create({ name, weather, imageUrl, owner })
+    .then((item) => res.status(201).json(item))
+    .catch((err) => {
+      if (err.name === "ValidationError") {
+        next(new BadRequestError("Invalid data provided"));
+      } else {
+        next(err);
       }
-      return next(err);
-  }
+    });
 };
 
-const deleteItems = async (req, res, next) => {
-try {
-  const {itemId} = req.params;
 
-  const item = await ClothingItem.findBy(itemId).orFail();
-  if (String(item.owner) !== req.user._id) {
-    throw new ForbiddenError("You cannot delete this item");
-  }
-  await item.deleteOne();
-  return res.status(OK).send({ message: "Successfully deleted"});
-} catch (err) {
-      if (err.name === 'CastError' || err.name === 'ValidationError') {
-    return next(new BadRequestError("Invalid item ID format"));
-  }
-  if (err.name === 'DocumentNotFoundError') {
-    return next(new NotFoundError('Item cannot be found'));
-  }
-  return next(err);
-}
-}
+const deleteItems = (req, res, next) => {
+const { itemId } = req.params;
 
-const likeItem = async (req, res, next) => {
-  try {
+  if (!mongoose.Types.ObjectId.isValid(itemId)) {
+    return next(new BadRequestError("The id string is in an invalid format"));
+  }
+
+  return ClothingItem.findById(itemId)
+    .then((item) => {
+      if (!item) {
+        return next(new NotFoundError("Item not found"));
+      }
+      if (item.owner.toString() !== req.user.id.toString()) {
+        return next(new ForbiddenError("You can only delete your own items"));
+      }
+      return ClothingItem.findByIdAndDelete(itemId).then((deletedItem) =>
+        res.status(200).send({ data: deletedItem })
+      );
+    })
+    .catch((err) => {
+      if (err.name === "CastError") {
+        next(new BadRequestError("The id string is in an invalid format"));
+      } else {
+        next(err);
+      }
+    });
+};
+
+const likeItem = (req, res, next) => {
   const { itemId } = req.params;
-  const userId = req.user._id;
 
-  const item = await ClothingItem.findByIdAndUpdate(
-  itemId,
-  { $addToSet: { likes: userId } }, // add _id to the array if it's not there yet
-  { new: true },
-)
-.orFail(() => new NotFoundError("Item not found"));
-return res.status(OK).send(item);
-} catch(err) {
-  if (err.name === 'CastError' || err.name === 'ValidationError') {
-    return next(new BadRequestError("Invalid item ID format"));
+  if (!mongoose.Types.ObjectId.isValid(itemId)) {
+    return next(new BadRequestError("The id string is in an invalid format"));
   }
-  return next(err);
-}
-}
 
-const dislikeItem = async (req, res, next) => {
-  try {
+  return ClothingItem.findByIdAndUpdate(
+    itemId,
+    { $addToSet: { likes: req.user.id } },
+    { new: true }
+  )
+    .then((item) => {
+      if (!item) {
+        return next(new NotFoundError("Item not found"));
+      }
+      return res.status(200).send({ data: item });
+    })
+    .catch((err) => {
+      if (err.name === "CastError") {
+        next(new BadRequestError("The id string is in an invalid format"));
+      } else {
+        next(err);
+      }
+    });
+};
+
+const dislikeItem = (req, res, next) => {
   const { itemId } = req.params;
-  const userId = req.user._id;
 
- const item = await ClothingItem.findByIdAndUpdate(
-  itemId,
-  { $pull: { likes: userId } }, // remove _id from the array
-  { new: true },
-)
-.orFail(() => new NotFoundError("Item not found"));
-return res.status(OK).send(item);
-} catch(err) {
-  if (err.name === 'CastError' || err.name === 'ValidationError') {
-    return next(new BadRequestError("Invalid item ID format"));
+  if (!mongoose.Types.ObjectId.isValid(itemId)) {
+    return next(new BadRequestError("The id string is in an invalid format"));
   }
-  return next(err);
-}
-}
+  return ClothingItem.findByIdAndUpdate(
+    itemId,
+    { $pull: { likes: req.user.id } },
+    { new: true }
+  )
+    .then((item) => {
+      if (!item) {
+        return next(new NotFoundError("Item not found"));
+      }
+      return res.status(200).send({ data: item });
+    })
+    .catch((err) => {
+      if (err.name === "CastError") {
+        next(new BadRequestError("The id string is in an invalid format"));
+      } else {
+        next(err);
+      }
+    });
+};
+
 
 module.exports = { getItems, createItems, deleteItems, likeItem, dislikeItem};
