@@ -1,7 +1,8 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require('../models/user');
-const { JWT_SECRET } = require("../utils/config");
+const { JWT_SECRET} = require("../utils/config");
+const { OK } = require('../utils/errors');
 const BadRequestError = require('../utils/error/BadRequestError');
 const UnauthorizedError = require('../utils/error/UnauthorizedError');
 const ConflictError = require('../utils/error/ConflictError');
@@ -15,7 +16,7 @@ const login = (req, res, next) => {
       const token = jwt.sign({ id: user.id }, JWT_SECRET, {
         expiresIn: "7d",
       });
-      res.status(200).send({ token });
+      res.status(OK).send({ token });
     })
     .catch((err) => {
       if (err.message === "Incorrect email or password") {
@@ -35,7 +36,7 @@ const createUser = (req, res, next) => {
       }
       return bcrypt.hash(password, 10).then((hash) =>
         User.create({ name, avatar, email, password: hash }).then((user) =>
-          res.status(200).json({
+          res.status(OK).json({
             id: user.id,
             name: user.name,
             avatar: user.avatar,
@@ -61,7 +62,7 @@ const getCurrentUser = (req, res, next) => {
       if (!user) {
         return next(new UnauthorizedError("User not found"));
       }
-      return res.status(200).json({
+      return res.status(OK).json({
         id: user.id,
         name: user.name,
         avatar: user.avatar,
@@ -70,9 +71,9 @@ const getCurrentUser = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === "CastError") {
-        next(new BadRequestError("The id string is in an invalid format"));
+       return next(new BadRequestError("The id string is in an invalid format"));
       } else {
-        next(err);
+       return next(err);
       }
     });
 };
@@ -102,15 +103,15 @@ const updateUser = (req, res, next) => {
         email: user.email,
       };
       console.log("Updated user:", updatedUser);
-      return res.status(200).json(updatedUser);
+      return res.status(OK).json(updatedUser);
     })
     .catch((err) => {
       if (err.name === "ValidationError") {
-        next(new BadRequestError("Invalid data provided"));
+       return next(new BadRequestError("Invalid data provided"));
       } else if (err.name === "CastError") {
-        next(new BadRequestError("The id string is in an invalid format"));
+       return next(new BadRequestError("The id string is in an invalid format"));
       } else {
-        next(err);
+       return next(err);
       }
     });
 };
