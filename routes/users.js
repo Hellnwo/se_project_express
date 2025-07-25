@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const { celebrate, Joi } = require("celebrate");
 const validator = require('validator');
-const { getCurrentUser, updateProfile } = require('../controllers/users');
+const { getCurrentUser, updateUser } = require('../controllers/users');
 const auth = require("../middlewares/auth");
 
 const validateUpdateUser = celebrate({
@@ -18,6 +18,6 @@ const validateUpdateUser = celebrate({
 
 router.get("/me", auth, getCurrentUser);
 
-router.patch("/me", auth, validateUpdateUser, updateProfile);
+router.patch("/me", auth, validateUpdateUser, updateUser);
 
 module.exports = router;
